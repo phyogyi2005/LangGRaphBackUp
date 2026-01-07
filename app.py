@@ -14,6 +14,8 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_google_genai import ChatGoogleGenerativeAI
 from pydantic import BaseModel, Field
 from langgraph.graph import StateGraph, START, END
+from langchain_google_genai import GoogleGenerativeAIEmbeddings 
+
 
 SYSTEM_PROMPT = """
 You are a friendly and professional Cyber Security Advisor.
@@ -33,6 +35,7 @@ LANGUAGE RULES:
 - If the user asks in Burmese, reply in Burmese.
 - If the user asks in English, reply in English.
 """
+
 # Configuration & Setup
 # -----------------------------
 UPLOAD_FOLDER = "upload"
@@ -42,22 +45,46 @@ if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 
 # -----------------------------
-# Vector Store Setup
+# Vector Store Setup (CHANGED)
 # -----------------------------
-embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2")
+
+# 1. Get the API Key from Environment Variable
+api_key = os.environ.get("GOOGLE_API_KEY_1") 
+
+if not api_key:
+    print("⚠️ Error: GOOGLE_API_KEY_1 not found in environment variables!")
+
+# 2. Use Google Embeddings instead of HuggingFace
+embeddings = GoogleGenerativeAIEmbeddings(
+    model="models/text-embedding-004", # This is the efficient Google model
+    google_api_key=api_key
+)
 
 def get_vectorstore():
+    # IMPORTANT: You must delete the old 'faiss_db' folder if you switched models!
     if os.path.exists(FAISS_PATH):
         print("Loading FAISS...")
-        return FAISS.load_local(FAISS_PATH, embeddings, allow_dangerous_deserialization=True)
+        try:
+            return FAISS.load_local(FAISS_PATH, embeddings, allow_dangerous_deserialization=True)
+        except Exception as e:
+            print(f"Error loading FAISS: {e}")
+            print("You might need to delete the 'faiss_db' folder and restart to rebuild it.")
+            return None
     else:
         print("Scanning PDFs...")
+        # Check if folder has files before loading
+        if not os.listdir(UPLOAD_FOLDER):
+            print("No PDF files found in upload folder.")
+            return None
+            
         loader = DirectoryLoader(UPLOAD_FOLDER, glob="*.pdf", loader_cls=PyPDFLoader)
         docs = loader.load()
         if not docs: return None
 
         text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
         splits = text_splitter.split_documents(docs)
+        
+        # Build vectorstore with Google Embeddings
         vectorstore = FAISS.from_documents(splits, embeddings)
         vectorstore.save_local(FAISS_PATH)
         return vectorstore
