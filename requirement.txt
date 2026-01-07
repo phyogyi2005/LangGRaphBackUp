@@ -1,0 +1,13 @@
+flask
+langgraph
+langgraph-checkpoint
+langchain
+langchain-community
+sentence-transformers
+faiss-cpu
+langchain-huggingface
+pypdf
+langchain-text-splitters
+pydantic
+langchain_google_genai
+gunicorn
