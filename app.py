@@ -325,61 +325,6 @@ def chat():
     server_memory = result["history"]
 
     return jsonify({"response": result["answer"]})
-Python
-
-import os
-import signal
-import sys
-import threading
-import time
-from typing import TypedDict, List, Literal
-
-# Libraries
-from flask import Flask, request, jsonify
-from langchain_huggingface import HuggingFaceEmbeddings
-from langchain_community.vectorstores import FAISS
-from langchain_community.document_loaders import PyPDFLoader, DirectoryLoader
-from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_google_genai import ChatGoogleGenerativeAI
-from pydantic import BaseModel, Field
-from langgraph.graph import StateGraph, START, END
-
-# --- CONFIGURATION ---
-# Use /tmp for ephemeral storage on Render (local disk is wiped on restart)
-UPLOAD_FOLDER = "/tmp/upload"
-FAISS_PATH = "/tmp/faiss_db"
-
-if not os.path.exists(UPLOAD_FOLDER):
-    os.makedirs(UPLOAD_FOLDER)
-
-# --- 1. SETUP API KEYS ---
-# We fetch these from Render's Environment Variables
-API_KEYS = [os.environ.get(f"GOOGLE_API_KEY_{i}") for i in range(1, 6)]
-API_KEYS = [key for key in API_KEYS if key is not None]
-
-if not API_KEYS:
-    # It's better to log a warning than crash immediately in some cases, 
-    # but for this app, we need keys.
-    print("⚠️ WARNING: No API Keys found in environment variables!")
-
-MODELS = ["gemini-2.5-flash", "gemini-2.5-flash-lite"]
-current_key_index = 0
-
-# --- VECTOR STORE ---
-embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2")
-
-def get_vectorstore():
-    # NOTE: On Render, this DB will be empty every time the app restarts 
-    # unless you use a persistent disk. For now, we rebuild if files exist.
-    if os.path.exists(FAISS_PATH):
-        try:
-            return FAISS.load_local(FAISS_PATH, embeddings, allow_dangerous_deserialization=True)
-        except:
-            return None
-    return None
-
-vectorstore = get_vectorstore()
-retriever = vectorstore.as_retriever(search_kwargs={"k": 3}) if vectorstore else None
 
 # ... [KEEP YOUR CLASSES: ChatState, RouteQuery, RAGResponse HERE] ...
 # ... [KEEP YOUR HELPER: call_llm_with_rotation HERE] ...
