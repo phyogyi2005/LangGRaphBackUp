@@ -7,7 +7,6 @@ from typing import TypedDict, List, Literal
 
 # Libraries
 from flask import Flask, request, jsonify
-from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
 from langchain_community.document_loaders import PyPDFLoader, DirectoryLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
