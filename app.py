@@ -453,7 +453,7 @@ if retriever: print("✅ Database Ready!")
 # 3. ADVANCED ROTATION LOGIC (BLOCKING MANAGER)
 # =========================================================
 
-MASTER_MODELS = ["gemini-2.0-flash-exp", "gemini-1.5-flash"] # Updated to latest models
+MASTER_MODELS = ["gemini-2.5-flash", "gemini-2.5-flash-lite"]
 
 class RotationManager:
     def __init__(self, keys):
