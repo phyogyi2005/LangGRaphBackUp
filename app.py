@@ -113,7 +113,7 @@ print(f"✅ Successfully loaded {len(API_KEYS)} API Keys from Environment.")
 # 2. MODELS SETUP
 # -----------------------------
 # The two models to rotate
-MODELS = ["gemini-2.5-flash", "gemini-2.5-flash-lite"]
+MODELS = ["gemini-1.5-flash", "gemini-2.5-flash"]
 
 # Global Index tracker
 current_key_index = 0
