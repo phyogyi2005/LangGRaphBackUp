@@ -446,7 +446,7 @@ def get_vectorstore():
 
 # Initialize DB on startup
 vectorstore = get_vectorstore()
-retriever = vectorstore.as_retriever(search_kwargs={"k": 10}) if vectorstore else None
+retriever = vectorstore.as_retriever(search_kwargs={"k": 5}) if vectorstore else None
 if retriever: print("✅ Database Ready!")
 
 # =========================================================
